@@ -1,0 +1,41 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "name": "dataset"
+  },
+  "width": "container",
+  "height": "container",
+  "mark": {
+    "type": "bar",
+    "tooltip": true
+  },
+  "encoding": {
+    "x": {
+      "field": "Value",
+      "type": "quantitative",
+      "axis": {
+        "title": null,
+        "format": ",.0f"
+      }
+    },
+    "y": {
+      "field": "Category",
+      "type": "nominal",
+      "sort": "-x",
+      "axis": {
+        "title": null
+      }
+    },
+    "tooltip": [
+      {
+        "field": "Category",
+        "type": "nominal"
+      },
+      {
+        "field": "Value",
+        "type": "quantitative",
+        "format": ",.0f"
+      }
+    ]
+  }
+}

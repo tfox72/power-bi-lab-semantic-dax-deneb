@@ -1,0 +1,67 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "name": "dataset"
+  },
+  "width": "container",
+  "height": "container",
+  "layer": [
+    {
+      "mark": {
+        "type": "bar",
+        "size": 24,
+        "tooltip": true
+      },
+      "encoding": {
+        "x": {
+          "field": "Actual",
+          "type": "quantitative",
+          "axis": {
+            "title": null,
+            "format": ",.0f"
+          }
+        },
+        "y": {
+          "field": "Metric",
+          "type": "nominal",
+          "axis": {
+            "title": null
+          }
+        },
+        "tooltip": [
+          {
+            "field": "Metric",
+            "type": "nominal"
+          },
+          {
+            "field": "Actual",
+            "type": "quantitative",
+            "format": ",.0f"
+          },
+          {
+            "field": "Target",
+            "type": "quantitative",
+            "format": ",.0f"
+          }
+        ]
+      }
+    },
+    {
+      "mark": {
+        "type": "tick",
+        "thickness": 2,
+        "size": 34
+      },
+      "encoding": {
+        "x": {
+          "field": "Target",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "Metric",
+          "type": "nominal"
+        }
+      }
+    }
+  ]
+}

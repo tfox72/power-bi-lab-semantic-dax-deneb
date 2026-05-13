@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Editor folders
+.vscode/
+.idea/
+
+# Claude local session outputs (not part of the project)
+outputs/.DS_Store

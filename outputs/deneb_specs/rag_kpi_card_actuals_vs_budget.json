@@ -1,0 +1,360 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "name": "dataset"
+  },
+  "width": "container",
+  "height": "container",
+  "background": "transparent",
+  "config": {
+    "view": {
+      "stroke": "transparent"
+    }
+  },
+  "transform": [
+    {
+      "joinaggregate": [
+        { "op": "sum", "field": "Actual Amount", "as": "_GrandActuals" },
+        { "op": "sum", "field": "Budget Amount", "as": "_GrandBudget" },
+        { "op": "sum", "field": "Variance Amount", "as": "_GrandVariance" }
+      ]
+    },
+    {
+      "calculate": "datum._GrandBudget !== 0 ? datum._GrandVariance / datum._GrandBudget : 0",
+      "as": "_GrandVarPct"
+    },
+    {
+      "calculate": "datum._GrandVarPct < -0.15 ? '#D13438' : datum._GrandVarPct < -0.05 ? '#FF8C00' : '#107C10'",
+      "as": "_RAGColor"
+    },
+    {
+      "calculate": "datum._GrandVarPct >= 0 ? '▲' : '▼'",
+      "as": "_Arrow"
+    },
+    {
+      "calculate": "datum._GrandActuals >= 1000000 ? format(datum._GrandActuals / 1000000, '$.2f') + 'M' : datum._GrandActuals >= 1000 ? format(datum._GrandActuals / 1000, '$.1f') + 'K' : format(datum._GrandActuals, '$,.0f')",
+      "as": "_Headline"
+    },
+    {
+      "calculate": "datum._Arrow + ' ' + (abs(datum._GrandVariance) >= 1000000 ? format(abs(datum._GrandVariance) / 1000000, '$.1f') + 'M' : format(abs(datum._GrandVariance) / 1000, '$.0f') + 'K') + ' vs Budget (' + format(abs(datum._GrandVarPct), '.1%') + ')'",
+      "as": "_VarLabel"
+    },
+    {
+      "calculate": "datum._GrandBudget !== 0 ? 'Budget consumed: ' + format(datum._GrandActuals / datum._GrandBudget, '.1%') : 'Budget consumed: N/A'",
+      "as": "_BurnLabel"
+    },
+    {
+      "calculate": "datum['Budget Amount'] !== 0 ? datum['Variance Amount'] / datum['Budget Amount'] : 0",
+      "as": "_MonthVarPct"
+    }
+  ],
+  "layer": [
+    {
+      "description": "Card white background with rounded border",
+      "transform": [{ "aggregate": [] }],
+      "mark": {
+        "type": "rect",
+        "fill": "#FFFFFF",
+        "stroke": "#E0E0E0",
+        "strokeWidth": 1,
+        "cornerRadius": 6
+      },
+      "encoding": {
+        "x": { "value": 0 },
+        "x2": { "expr": "width" },
+        "y": { "value": 0 },
+        "y2": { "expr": "height" }
+      }
+    },
+    {
+      "description": "Left RAG accent bar — color driven by grand variance %",
+      "transform": [
+        {
+          "aggregate": [
+            { "op": "max", "field": "_RAGColor", "as": "_Color" }
+          ]
+        }
+      ],
+      "mark": { "type": "rect" },
+      "encoding": {
+        "x": { "value": 0 },
+        "x2": { "value": 5 },
+        "y": { "value": 1 },
+        "y2": { "expr": "height - 1" },
+        "color": {
+          "field": "_Color",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Metric title label — update 'text' property for each card variant",
+      "transform": [{ "aggregate": [] }],
+      "mark": {
+        "type": "text",
+        "text": "TOTAL ACTUALS",
+        "align": "left",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "color": "#999999"
+      },
+      "encoding": {
+        "x": { "value": 14 },
+        "y": { "value": 18 }
+      }
+    },
+    {
+      "description": "Headline KPI value — auto-formats to $M or $K",
+      "transform": [
+        { "aggregate": [{ "op": "max", "field": "_Headline", "as": "_H" }] }
+      ],
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#1F1F1F"
+      },
+      "encoding": {
+        "x": { "value": 14 },
+        "y": { "value": 50 },
+        "text": { "field": "_H", "type": "nominal" }
+      }
+    },
+    {
+      "description": "Variance vs Budget — RAG colored arrow + amount + %",
+      "transform": [
+        {
+          "aggregate": [
+            { "op": "max", "field": "_VarLabel", "as": "_VL" },
+            { "op": "max", "field": "_RAGColor", "as": "_VC" }
+          ]
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "fontSize": 10,
+        "fontWeight": "normal"
+      },
+      "encoding": {
+        "x": { "value": 14 },
+        "y": { "value": 68 },
+        "text": { "field": "_VL", "type": "nominal" },
+        "color": {
+          "field": "_VC",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Budget consumed % — muted secondary stat",
+      "transform": [
+        { "aggregate": [{ "op": "max", "field": "_BurnLabel", "as": "_BL" }] }
+      ],
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "fontSize": 9,
+        "color": "#BBBBBB"
+      },
+      "encoding": {
+        "x": { "value": 14 },
+        "y": { "value": 84 },
+        "text": { "field": "_BL", "type": "nominal" }
+      }
+    },
+    {
+      "description": "Sparkline area fill — constrained to bottom 32% of card height",
+      "mark": {
+        "type": "area",
+        "opacity": 0.12,
+        "interpolate": "monotone",
+        "clip": true
+      },
+      "encoding": {
+        "x": {
+          "field": "Month",
+          "type": "ordinal",
+          "axis": null,
+          "sort": { "field": "Month Sort", "order": "ascending" }
+        },
+        "y": {
+          "field": "Actual Amount",
+          "type": "quantitative",
+          "axis": null,
+          "scale": {
+            "zero": false,
+            "range": [{ "expr": "height - 6" }, { "expr": "height * 0.68" }]
+          }
+        },
+        "color": {
+          "field": "_RAGColor",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Sparkline line — same color as RAG accent bar",
+      "mark": {
+        "type": "line",
+        "strokeWidth": 1.8,
+        "interpolate": "monotone",
+        "clip": true
+      },
+      "encoding": {
+        "x": {
+          "field": "Month",
+          "type": "ordinal",
+          "axis": null,
+          "sort": { "field": "Month Sort", "order": "ascending" }
+        },
+        "y": {
+          "field": "Actual Amount",
+          "type": "quantitative",
+          "axis": null,
+          "scale": {
+            "zero": false,
+            "range": [{ "expr": "height - 6" }, { "expr": "height * 0.68" }]
+          }
+        },
+        "color": {
+          "field": "_RAGColor",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Hover highlight dot — appears on selected month",
+      "params": [
+        {
+          "name": "hoverMonth",
+          "select": {
+            "type": "point",
+            "on": "mouseover",
+            "clear": "mouseout",
+            "fields": ["Month"]
+          }
+        }
+      ],
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 50,
+        "opacity": 0,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {
+          "field": "Month",
+          "type": "ordinal",
+          "axis": null,
+          "sort": { "field": "Month Sort", "order": "ascending" }
+        },
+        "y": {
+          "field": "Actual Amount",
+          "type": "quantitative",
+          "axis": null,
+          "scale": {
+            "zero": false,
+            "range": [{ "expr": "height - 6" }, { "expr": "height * 0.68" }]
+          }
+        },
+        "color": {
+          "field": "_RAGColor",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Visible dot on hovered month",
+      "transform": [
+        { "filter": { "param": "hoverMonth", "empty": false } }
+      ],
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 60,
+        "strokeWidth": 0
+      },
+      "encoding": {
+        "x": {
+          "field": "Month",
+          "type": "ordinal",
+          "axis": null,
+          "sort": { "field": "Month Sort", "order": "ascending" }
+        },
+        "y": {
+          "field": "Actual Amount",
+          "type": "quantitative",
+          "axis": null,
+          "scale": {
+            "zero": false,
+            "range": [{ "expr": "height - 6" }, { "expr": "height * 0.68" }]
+          }
+        },
+        "color": {
+          "field": "_RAGColor",
+          "type": "nominal",
+          "scale": null,
+          "legend": null
+        }
+      }
+    },
+    {
+      "description": "Invisible full-size interaction layer — tooltip + click cross-filter",
+      "params": [
+        {
+          "name": "monthCrossFilter",
+          "select": {
+            "type": "point",
+            "fields": ["Month"],
+            "on": "click",
+            "clear": "dblclick"
+          }
+        }
+      ],
+      "mark": {
+        "type": "point",
+        "opacity": 0,
+        "size": 400,
+        "filled": true,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {
+          "field": "Month",
+          "type": "ordinal",
+          "axis": null,
+          "sort": { "field": "Month Sort", "order": "ascending" }
+        },
+        "y": {
+          "field": "Actual Amount",
+          "type": "quantitative",
+          "axis": null,
+          "scale": {
+            "zero": false,
+            "range": [{ "expr": "height - 6" }, { "expr": "height * 0.68" }]
+          }
+        },
+        "tooltip": [
+          { "field": "Month", "type": "nominal", "title": "Month" },
+          { "field": "Actual Amount", "type": "quantitative", "format": "$,.0f", "title": "Actuals" },
+          { "field": "Budget Amount", "type": "quantitative", "format": "$,.0f", "title": "Budget" },
+          { "field": "Variance Amount", "type": "quantitative", "format": "$,.0f", "title": "Variance $" },
+          { "field": "_MonthVarPct", "type": "quantitative", "format": ".1%", "title": "Variance %" }
+        ]
+      }
+    }
+  ]
+}
